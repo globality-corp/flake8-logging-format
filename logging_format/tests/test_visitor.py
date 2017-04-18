@@ -171,7 +171,7 @@ def test_string_format():
     assert_that(visitor.violations[0][1], is_(equal_to(STRING_FORMAT_VIOLATION)))
 
 
-def test_format_precent():
+def test_format_percent():
     """
     Percent formatting is not ok in logging statements.
 
