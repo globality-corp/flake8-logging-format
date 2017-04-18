@@ -1,0 +1,14 @@
+#ack is a tool like grep, designed for programmers with large trees of heterogeneous source code
+
+#to install ack, see http://betterthangrep.com/
+#to use ack, launch terminal (mac osx) and type 'ack <some_keywords>'
+#ack will search all files in the current directory & sub-directories
+
+# Always color, even if piping to a another program
+--color
+
+# Python project settings
+--ignore-dir=.eggs/
+--ignore-dir=.tox/
+--ignore-dir=build/
+--ignore-dir=cover/
