@@ -24,7 +24,10 @@ setup(
     ],
     entry_points={
         "flake8.extension": [
-            'logging-format = flake8_logging_format.api:LoggingFormatValidator',
+            "logging-format = logging_format.api:LoggingFormatValidator",
+        ],
+        "logging.extra.example": [
+            "example = logging_format.whitelist:example_whitelist",
         ],
     },
     tests_require=[
