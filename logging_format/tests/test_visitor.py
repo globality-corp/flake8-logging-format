@@ -139,9 +139,9 @@ def test_debug_ok_with_not_whitelisted_keyword():
         import logging
 
         logging.debug(
-            "Hello {hello}!",
+            "Hello {goodbye}!",
             extra=dict(
-              hello="{}",
+              goodbye="{}",
             ),
         )
         logging.info(
