@@ -37,6 +37,10 @@ Usage:
 The built-in `Whitelist` supports plugins using `entry_points` with a key of `"logging.extra.whitelist"`. Each
 registered entry point must be a callable that returns an iterable of string.
 
+In some cases you may want to log sensitive data only in debugging senarios.  This is supported in 2 ways:
+1. We do not check the logging.extra.whitelist for lines logged at the `debug` level
+2. You may also prefix a keyword with 'debug\_' and log it at another level.  You can safely assume these will be
+   filtered out of shipped logs.
 
 ## Violations Detected
 

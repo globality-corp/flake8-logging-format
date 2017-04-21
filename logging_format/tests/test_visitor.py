@@ -106,7 +106,7 @@ def test_extra_with_whitelisted_keyword():
     assert_that(visitor.violations, is_(empty()))
 
 
-def test_extra_with_nont_whitelisted_keyword():
+def test_extra_with_not_whitelisted_keyword():
     """
     Extra keyword is not ok if not in whitelist.
 
@@ -128,6 +128,59 @@ def test_extra_with_nont_whitelisted_keyword():
     assert_that(whitelist, contains("world"))
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(WHITELIST_VIOLATION.format("hello"))))
+
+
+def test_debug_ok_with_not_whitelisted_keyword():
+    """
+    Extra keyword is ok for debug if not in whitelist.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        logging.debug(
+            "Hello {goodbye}!",
+            extra=dict(
+              goodbye="{}",
+            ),
+        )
+        logging.info(
+            "Hello {hello}!",
+            extra=dict(
+              hello="{}",
+            ),
+        )
+    """))
+    whitelist = Whitelist(group="logging.extra.example")
+    visitor = LoggingVisitor(whitelist=whitelist)
+    visitor.visit(tree)
+
+    assert_that(whitelist, contains("world"))
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(WHITELIST_VIOLATION.format("hello"))))
+
+
+def test_debug_prefix_ok_with_not_whitelisted_keyword():
+    """
+    Extra keyword is ok if prefix 'debug_'.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        logging.info(
+            "Hello {debug_hello}!",
+            extra=dict(
+              debug_hello="{}",
+            ),
+        )
+    """))
+    whitelist = Whitelist(group="logging.extra.example")
+    visitor = LoggingVisitor(whitelist=whitelist)
+    visitor.visit(tree)
+
+    assert_that(whitelist, contains("world"))
+    assert_that(visitor.violations, is_(empty()))
 
 
 def test_extra_with_non_whitelisted_dict_keyword():

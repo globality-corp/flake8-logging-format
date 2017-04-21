@@ -79,6 +79,10 @@ class LoggingVisitor(NodeVisitor):
         if logging_level == "warn":
             self.violations.append((node, WARN_VIOLATION))
 
+        # Allow non-whitelisted keys at debug level
+        if logging_level == "debug":
+            return
+
         for index, child in enumerate(iter_child_nodes(node)):
             if index == 1:
                 self.current_logging_argument = child
@@ -111,9 +115,9 @@ class LoggingVisitor(NodeVisitor):
         Process dict arguments.
 
         """
-        if self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None:
+        if self.should_check_whitelist(node):
             for key in node.keys:
-                if key.s in self.whitelist:
+                if key.s in self.whitelist or key.s.startswith("debug_"):
                     continue
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
@@ -124,8 +128,8 @@ class LoggingVisitor(NodeVisitor):
         Process keyword arguments.
 
         """
-        if self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None:
-            if node.arg not in self.whitelist:
+        if self.should_check_whitelist(node):
+            if node.arg not in self.whitelist and not node.arg.startswith("debug_"):
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(node.arg)))
         super(LoggingVisitor, self).generic_visit(node)
 
@@ -151,3 +155,6 @@ class LoggingVisitor(NodeVisitor):
             return node.func.attr == "format"
         except AttributeError:
             return False
+
+    def should_check_whitelist(self, node):
+        return self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None
