@@ -224,6 +224,23 @@ def test_string_format():
     assert_that(visitor.violations[0][1], is_(equal_to(STRING_FORMAT_VIOLATION)))
 
 
+def test_debug_string_format():
+    """
+    String formatting is not ok in logging statements.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        logging.debug("Hello {}".format("World!"))
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(STRING_FORMAT_VIOLATION)))
+
+
 def test_format_percent():
     """
     Percent formatting is not ok in logging statements.
