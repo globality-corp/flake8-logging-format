@@ -36,6 +36,7 @@ class LoggingVisitor(NodeVisitor):
         super(LoggingVisitor, self).__init__()
         self.current_logging_call = None
         self.current_logging_argument = None
+        self.current_logging_level = None
         self.current_extra_keyword = None
         self.violations = []
         self.whitelist = whitelist
@@ -48,9 +49,6 @@ class LoggingVisitor(NodeVisitor):
 
     def within_extra_keyword(self, node):
         return self.current_extra_keyword is not None and self.current_extra_keyword != node
-
-    def generic_visit(self, node):
-        super(LoggingVisitor, self).generic_visit(node)
 
     def visit_Call(self, node):
         """
@@ -68,6 +66,9 @@ class LoggingVisitor(NodeVisitor):
 
         logging_level = self.detect_logging_level(node)
 
+        if logging_level and self.current_logging_level is None:
+            self.current_logging_level = logging_level
+
         # CASE 2: We're in some other statement
         if logging_level is None:
             super(LoggingVisitor, self).generic_visit(node)
@@ -78,10 +79,6 @@ class LoggingVisitor(NodeVisitor):
 
         if logging_level == "warn":
             self.violations.append((node, WARN_VIOLATION))
-
-        # Allow non-whitelisted keys at debug level
-        if logging_level == "debug":
-            return
 
         for index, child in enumerate(iter_child_nodes(node)):
             if index == 1:
@@ -95,6 +92,7 @@ class LoggingVisitor(NodeVisitor):
             self.current_extra_keyword = None
 
         self.current_logging_call = None
+        self.current_logging_level = None
 
     def visit_BinOp(self, node):
         """
@@ -157,4 +155,11 @@ class LoggingVisitor(NodeVisitor):
             return False
 
     def should_check_whitelist(self, node):
-        return self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None
+        return all(
+            (
+                self.current_logging_level != 'debug',
+                self.within_logging_statement(),
+                self.within_extra_keyword(node),
+                self.whitelist is not None,
+            )
+        )
