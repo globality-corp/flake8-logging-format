@@ -292,3 +292,19 @@ def test_warn():
 
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(WARN_VIOLATION)))
+
+
+def test_warnings():
+    """
+    Warnings library is forgiven.
+
+    """
+    tree = parse(dedent("""\
+        import warnings
+
+        warnings.warn("Hello World!")
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
