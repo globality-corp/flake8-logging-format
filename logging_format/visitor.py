@@ -36,6 +36,7 @@ class LoggingVisitor(NodeVisitor):
         super(LoggingVisitor, self).__init__()
         self.current_logging_call = None
         self.current_logging_argument = None
+        self.current_logging_level = None
         self.current_extra_keyword = None
         self.violations = []
         self.whitelist = whitelist
@@ -48,9 +49,6 @@ class LoggingVisitor(NodeVisitor):
 
     def within_extra_keyword(self, node):
         return self.current_extra_keyword is not None and self.current_extra_keyword != node
-
-    def generic_visit(self, node):
-        super(LoggingVisitor, self).generic_visit(node)
 
     def visit_Call(self, node):
         """
@@ -67,6 +65,9 @@ class LoggingVisitor(NodeVisitor):
                 return
 
         logging_level = self.detect_logging_level(node)
+
+        if logging_level and self.current_logging_level is None:
+            self.current_logging_level = logging_level
 
         # CASE 2: We're in some other statement
         if logging_level is None:
@@ -91,6 +92,7 @@ class LoggingVisitor(NodeVisitor):
             self.current_extra_keyword = None
 
         self.current_logging_call = None
+        self.current_logging_level = None
 
     def visit_BinOp(self, node):
         """
@@ -111,9 +113,9 @@ class LoggingVisitor(NodeVisitor):
         Process dict arguments.
 
         """
-        if self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None:
+        if self.should_check_whitelist(node):
             for key in node.keys:
-                if key.s in self.whitelist:
+                if key.s in self.whitelist or key.s.startswith("debug_"):
                     continue
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
@@ -124,8 +126,8 @@ class LoggingVisitor(NodeVisitor):
         Process keyword arguments.
 
         """
-        if self.within_logging_statement() and self.within_extra_keyword(node) and self.whitelist is not None:
-            if node.arg not in self.whitelist:
+        if self.should_check_whitelist(node):
+            if node.arg not in self.whitelist and not node.arg.startswith("debug_"):
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(node.arg)))
         super(LoggingVisitor, self).generic_visit(node)
 
@@ -135,6 +137,8 @@ class LoggingVisitor(NodeVisitor):
 
         """
         try:
+            if node.func.value.id == "warnings":
+                return None
             # NB: We could also look at the argument signature or the target attribute
             if node.func.attr in LOGGING_LEVELS:
                 return node.func.attr
@@ -151,3 +155,13 @@ class LoggingVisitor(NodeVisitor):
             return node.func.attr == "format"
         except AttributeError:
             return False
+
+    def should_check_whitelist(self, node):
+        return all(
+            (
+                self.current_logging_level != 'debug',
+                self.within_logging_statement(),
+                self.within_extra_keyword(node),
+                self.whitelist is not None,
+            )
+        )
