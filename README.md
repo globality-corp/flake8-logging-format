@@ -47,5 +47,11 @@ In some cases you may want to log sensitive data only in debugging senarios.  Th
  -  `G001` Logging statements should not use `string.format()` for their first argument
  -  `G002` Logging statements should not use `%` formatting for their first argument
  -  `G003` Logging statements should not use `+` concatenation for their first argument
+ -  `G004` Logging statements should not use `f"..."` for their first argument (only in Python 3.6+)
  -  `G010` Logging statements should not use `warn` (use `warning` instead)
  -  `G100` Logging statements should not use `extra` arguments unless whitelisted
+
+These violations are disabled by default. To enable them for your project, specify the code(s) in your `setup.cfg`:
+
+    [flake8]
+    enable-extensions=G
