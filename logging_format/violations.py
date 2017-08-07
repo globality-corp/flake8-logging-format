@@ -9,6 +9,8 @@ STRING_CONCAT_VIOLATION = "G003 Logging statement uses '+'"
 
 PERCENT_FORMAT_VIOLATION = "G002 Logging statement uses '%'"
 
+FSTRING_VIOLATION = "G004 Logging statement uses f-string"
+
 WARN_VIOLATION = "G010 Logging statement uses 'warn' instead of 'warning'"
 
 WHITELIST_VIOLATION = "G100 Logging statement uses non-whitelisted extra keyword argument: {}"

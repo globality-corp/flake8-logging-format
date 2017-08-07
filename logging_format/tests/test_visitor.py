@@ -3,6 +3,7 @@ Visitor tests.
 
 """
 from ast import parse
+from sys import version_info
 from textwrap import dedent
 
 from hamcrest import (
@@ -18,6 +19,7 @@ from logging_format.violations import (
     PERCENT_FORMAT_VIOLATION,
     STRING_CONCAT_VIOLATION,
     STRING_FORMAT_VIOLATION,
+    FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
 )
@@ -256,6 +258,24 @@ def test_format_percent():
 
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(PERCENT_FORMAT_VIOLATION)))
+
+
+def test_fstring():
+    """
+    F-Strings are not ok in logging statements.
+
+    """
+    if version_info >= (3, 6):
+        tree = parse(dedent("""\
+            import logging
+            name = "world"
+            logging.info(f"Hello {name}")
+        """))
+        visitor = LoggingVisitor()
+        visitor.visit(tree)
+
+        assert_that(visitor.violations, has_length(1))
+        assert_that(visitor.violations[0][1], is_(equal_to(FSTRING_VIOLATION)))
 
 
 def test_string_concat():
