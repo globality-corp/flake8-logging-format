@@ -2,6 +2,8 @@
 AST Visitor to identify logging expressions.
 
 """
+from sys import version_info
+
 from ast import (
     Add,
     keyword,
@@ -10,14 +12,17 @@ from ast import (
     NodeVisitor,
 )
 
-
 from logging_format.violations import (
     PERCENT_FORMAT_VIOLATION,
     STRING_CONCAT_VIOLATION,
     STRING_FORMAT_VIOLATION,
+    FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
 )
+
+if version_info >= (3, 6):
+    from ast import FormattedValue
 
 
 LOGGING_LEVELS = {
@@ -120,6 +125,18 @@ class LoggingVisitor(NodeVisitor):
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
         super(LoggingVisitor, self).generic_visit(node)
+
+    def visit_JoinedStr(self, node):
+        """
+        Process f-string arguments.
+
+        """
+        if version_info >= (3, 6):
+            if self.within_logging_statement():
+                if any(isinstance(i, FormattedValue) for i in node.values):
+                    if self.within_logging_argument():
+                        self.violations.append((node, FSTRING_VIOLATION))
+                        super(LoggingVisitor, self).generic_visit(node)
 
     def visit_keyword(self, node):
         """
