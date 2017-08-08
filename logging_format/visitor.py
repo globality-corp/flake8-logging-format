@@ -29,6 +29,7 @@ LOGGING_LEVELS = {
     "debug",
     "critical",
     "error",
+    "exception",
     "info",
     "warn",
     "warning",
