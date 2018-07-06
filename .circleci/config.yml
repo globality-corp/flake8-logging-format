@@ -85,8 +85,8 @@ jobs:
       - run:
           name: Test code
           command: |
-            docker create -v /src/flake8_logging_format/tests/ --name service_tests alpine:3.4 /bin/true
-            docker cp $(pwd)/flake8_logging_format/tests service_tests:/src/flake8_logging_format/
+            docker create -v /src/logging_format/tests/ --name service_tests alpine:3.4 /bin/true
+            docker cp $(pwd)/logging_format/tests service_tests:/src/logging_format/
             eval $(aws ecr get-login --no-include-email)
             docker pull ${AWS_ECR_DOMAIN}/flake8-logging-format:${CIRCLE_SHA1}
             docker run -it  --volumes-from service_tests ${AWS_ECR_DOMAIN}/flake8-logging-format:${CIRCLE_SHA1} test
@@ -104,7 +104,7 @@ jobs:
           name: Run Lint
           command: |
             docker create -v /src/flake8-logging-format/tests/ --name service_tests alpine:3.4 /bin/true
-            docker cp $(pwd)/flake8_logging_format/tests service_tests:/src/flake8_logging_format/
+            docker cp $(pwd)/logging_format/tests service_tests:/src/logging_format/
             eval $(aws ecr get-login --no-include-email)
             docker pull ${AWS_ECR_DOMAIN}/flake8-logging-format:${CIRCLE_SHA1}
             docker run -it --volumes-from service_tests ${AWS_ECR_DOMAIN}/flake8-logging-format:${CIRCLE_SHA1} lint
