@@ -6,9 +6,11 @@ from sys import version_info
 
 from ast import (
     Add,
+    Call,
     keyword,
     iter_child_nodes,
     Mod,
+    Name,
     NodeVisitor,
 )
 
@@ -19,6 +21,9 @@ from logging_format.violations import (
     FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
+    EXCEPTION_VIOLATION,
+    ERROR_EXC_INFO_VIOLATION,
+    REDUNDANT_EXC_INFO_VIOLATION,
 )
 
 if version_info >= (3, 6):
@@ -44,6 +49,7 @@ class LoggingVisitor(NodeVisitor):
         self.current_logging_argument = None
         self.current_logging_level = None
         self.current_extra_keyword = None
+        self.current_except_names = []
         self.violations = []
         self.whitelist = whitelist
 
@@ -86,9 +92,13 @@ class LoggingVisitor(NodeVisitor):
         if logging_level == "warn":
             self.violations.append((node, WARN_VIOLATION))
 
+        self.check_exc_info(node)
+
         for index, child in enumerate(iter_child_nodes(node)):
             if index == 1:
                 self.current_logging_argument = child
+            if index >= 1:
+                self.check_exception_arg(child)
             if index > 1 and isinstance(child, keyword) and child.arg == "extra":
                 self.current_extra_keyword = child
 
@@ -125,6 +135,10 @@ class LoggingVisitor(NodeVisitor):
                     continue
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
+        if self.should_check_extra_exception(node):
+            for value in node.values:
+                self.check_exception_arg(value)
+
         super(LoggingVisitor, self).generic_visit(node)
 
     def visit_JoinedStr(self, node):
@@ -147,7 +161,25 @@ class LoggingVisitor(NodeVisitor):
         if self.should_check_whitelist(node):
             if node.arg not in self.whitelist and not node.arg.startswith("debug_"):
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(node.arg)))
+
+        if self.should_check_extra_exception(node):
+            self.check_exception_arg(node.value)
+
         super(LoggingVisitor, self).generic_visit(node)
+
+    def visit_ExceptHandler(self, node):
+        """
+        Process except blocks.
+
+        """
+        name = self.get_except_handler_name(node)
+        if not name:
+            super(LoggingVisitor, self).generic_visit(node)
+            return
+
+        self.current_except_names.append(name)
+        super(LoggingVisitor, self).generic_visit(node)
+        self.current_except_names.pop()
 
     def detect_logging_level(self, node):
         """
@@ -183,3 +215,65 @@ class LoggingVisitor(NodeVisitor):
                 self.whitelist is not None,
             )
         )
+
+    def should_check_extra_exception(self, node):
+        return all(
+            (
+                self.within_logging_statement(),
+                self.within_extra_keyword(node),
+                len(self.current_except_names) > 0,
+            )
+        )
+
+    def get_except_handler_name(self, node):
+        """
+        Helper to get the exception name from an ExceptHandler node in both py2 and py3.
+
+        """
+        name = node.name
+        if not name:
+            return None
+
+        if version_info < (3,):
+            return name.id
+        return name
+
+    def is_bare_exception(self, node):
+        """
+        Checks if the node is a bare exception name from an except block.
+
+        """
+        return isinstance(node, Name) and node.id in self.current_except_names
+
+    def is_str_exception(self, node):
+        """
+        Checks if the node is the expression str(e) or unicode(e), where e is an exception name from an except block
+
+        """
+        return (
+            isinstance(node, Call)
+            and isinstance(node.func, Name)
+            and node.func.id in ('str', 'unicode')
+            and node.args
+            and self.is_bare_exception(node.args[0])
+        )
+
+    def check_exception_arg(self, node):
+        if self.is_bare_exception(node) or self.is_str_exception(node):
+            self.violations.append((self.current_logging_call, EXCEPTION_VIOLATION))
+
+    def check_exc_info(self, node):
+        """
+        Reports a violation if exc_info keyword is used with logging.error or logging.exception.
+
+        """
+        if self.current_logging_level not in ('error', 'exception'):
+            return
+
+        for kw in node.keywords:
+            if kw.arg == 'exc_info':
+                if self.current_logging_level == 'error':
+                    violation = ERROR_EXC_INFO_VIOLATION
+                else:
+                    violation = REDUNDANT_EXC_INFO_VIOLATION
+                self.violations.append((node, violation))
