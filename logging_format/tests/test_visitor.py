@@ -22,6 +22,9 @@ from logging_format.violations import (
     FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
+    EXCEPTION_VIOLATION,
+    ERROR_EXC_INFO_VIOLATION,
+    REDUNDANT_EXC_INFO_VIOLATION,
 )
 from logging_format.visitor import LoggingVisitor
 from logging_format.whitelist import Whitelist
@@ -328,3 +331,231 @@ def test_warnings():
     visitor.visit(tree)
 
     assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_standard():
+    """
+    In an except block, exceptions should be logged using .exception().
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception:
+            logging.exception('Something bad has happened')
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_warning():
+    """
+    In an except block, logging exceptions using exc_info=True is ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception:
+            logging.warning('Something bad has happened', exc_info=True)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_attribute_as_main_arg():
+    """
+    In an except block, passing an exception attribute into logging as main argument is ok.
+
+    """
+    tree = parse(dedent("""\
+            import logging
+
+            class CustomException(Exception):
+                def __init__(self, custom_arg):
+                    self.custom_arg = custom_arg
+
+            try:
+                pass
+            except CustomException as e:
+                logging.error(e.custom_arg)
+        """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_attribute_as_formatting_arg():
+    """
+    In an except block, passing an exception attribute into logging as a formatting argument is ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        class CustomException(Exception):
+            def __init__(self, custom_arg):
+                self.custom_arg = custom_arg
+
+        try:
+            pass
+        except CustomException as e:
+            logging.error('Custom exception has occurred: %s', e.custom_arg)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_attribute_in_extra():
+    """
+    In an except block, passing an exception attribute into logging as a value of extra dict is ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        class CustomException(Exception):
+            def __init__(self, custom_arg):
+                self.custom_arg = custom_arg
+
+        try:
+            pass
+        except CustomException as e:
+            logging.error('Custom exception has occurred: {custom_arg}', extra=dict(custom_arg=e.custom_arg))
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
+def test_exception_as_main_arg():
+    """
+    In an except block, passing the exception into logging as main argument is not ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception as e:
+            logging.exception(e)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXCEPTION_VIOLATION)))
+
+
+def test_exception_as_formatting_arg():
+    """
+    In an except block, passing the exception into logging as a formatting argument is not ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception as e:
+            logging.exception('Exception occurred: %s', str(e))
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXCEPTION_VIOLATION)))
+
+
+def test_exception_in_extra():
+    """
+    In an except block, passing the exception into logging as a value of extra dict is not ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception as e:
+            logging.exception('Exception occurred: {exc}', extra=dict(exc=e))
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXCEPTION_VIOLATION)))
+
+
+def test_nested_exception():
+    """
+    In a nested except block, using the exception from an outer except block is not ok.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        try:
+            pass
+        except Exception as e1:
+            try:
+                pass
+            except Exception as e2:
+                logging.exception(e1)
+            logging.exception(e1)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(2))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXCEPTION_VIOLATION)))
+    assert_that(visitor.violations[1][1], is_(equal_to(EXCEPTION_VIOLATION)))
+
+
+def test_error_exc_info():
+    """
+    .error(..., exc_info=True) should not be used in favor of .exception(...).
+
+    """
+
+    tree = parse(dedent("""\
+        import logging
+
+        logging.error('Hello World', exc_info=True)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(ERROR_EXC_INFO_VIOLATION)))
+
+
+def test_exception_exc_info():
+    """
+    .exception(..., exc_info=True) is redundant.
+
+    """
+
+    tree = parse(dedent("""\
+        import logging
+
+        logging.exception('Hello World', exc_info=True)
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(REDUNDANT_EXC_INFO_VIOLATION)))

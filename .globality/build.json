@@ -1,0 +1,7 @@
+{
+  "type": "python-library",
+  "params": {
+    "name": "flake8-logging-format",
+    "lib_name": "logging_format"
+  }
+}
