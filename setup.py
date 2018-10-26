@@ -35,6 +35,6 @@ setup(
         "PyHamcrest>=1.8.5",
     ],
     classifiers=[
-        'Framework :: Flake8',
+        "Framework :: Flake8",
     ],
 )
