@@ -34,4 +34,7 @@ setup(
         "coverage>=3.7.1",
         "PyHamcrest>=1.8.5",
     ],
+    classifiers=[
+        'Framework :: Flake8',
+    ],
 )
