@@ -12,18 +12,23 @@ concatenation, or other similar techniques to construct a log string.
 
 In other words, do this:
 
-    logger.info(
-        "Hello {world}",
-        extra=dict(
-            world="Earth"
-        )
-    )
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+logger.info("Hello {world}", extra={"world": "Earth"})
+```
 
 Instead of:
 
-    logger.info(
-        "Hello {world}".format(world=Earth)
-    )
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+logger.info("Hello {world}".format(world="Earth"))
+```
 
 
 ## Extra Whitelist
@@ -32,7 +37,9 @@ As a further level of rigor, we can enforce that `extra` dictionaries only use k
 
 Usage:
 
-     flake8 --enable-extra-whitelist
+```console
+ flake8 --enable-extra-whitelist
+ ```
 
 The built-in `Whitelist` supports plugins using `entry_points` with a key of `"logging.extra.whitelist"`. Each
 registered entry point must be a callable that returns an iterable of string.
@@ -56,5 +63,7 @@ In some cases you may want to log sensitive data only in debugging senarios.  Th
 
 These violations are disabled by default. To enable them for your project, specify the code(s) in your `setup.cfg`:
 
-    [flake8]
-    enable-extensions=G
+```ini
+[flake8]
+enable-extensions = G
+```
