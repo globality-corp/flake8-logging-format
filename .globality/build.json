@@ -1,7 +1,8 @@
 {
-  "type": "python-library",
   "params": {
-    "name": "flake8-logging-format",
-    "lib_name": "logging_format"
-  }
+    "lib_name": "logging_format",
+    "name": "flake8-logging-format"
+  },
+  "type": "python-library",
+  "version": "2.0.33"
 }
