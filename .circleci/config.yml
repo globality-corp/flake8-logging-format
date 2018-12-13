@@ -70,7 +70,7 @@ jobs:
           # install dependencies for loading ecs task definitions
           command: |
             eval $(aws ecr get-login --no-include-email)
-            globality-build build-gen --config-file .globality/build.json
+            globality-build build-gen local --config-file .globality/build.json
             globality-build docker-base --repo python-library
             globality-build docker --repo python-library
 
