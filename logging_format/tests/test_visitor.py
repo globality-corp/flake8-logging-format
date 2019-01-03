@@ -559,3 +559,39 @@ def test_exception_exc_info():
 
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(REDUNDANT_EXC_INFO_VIOLATION)))
+
+
+def test_app_log():
+    """
+    Detect nested loggers.
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        class TestApp(object):
+
+            def __init__(self, logger: logging.Logger, child=None):
+                self.log = logger
+                self.child = child
+
+        app_name = "test-app"
+        logger = logging.getLogger(app_name)
+
+        app = TestApp(logger)
+
+        logger = logging.getLogger("child1")
+        app.child = TestApp(logger)
+
+        app.log.info(f"Hello World for {app_name}")
+        app.child.log.debug(f"Hello World for {app_name}")
+        try:
+            raise Exception("Another test")
+        except Exception as exp:
+            app.log.exception("Something bad has happened")
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(FSTRING_VIOLATION)))

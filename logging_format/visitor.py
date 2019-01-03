@@ -187,7 +187,7 @@ class LoggingVisitor(NodeVisitor):
 
         """
         try:
-            if node.func.value.id == "warnings":
+            if self.get_id_attr(node.func.value) == "warnings":
                 return None
             # NB: We could also look at the argument signature or the target attribute
             if node.func.attr in LOGGING_LEVELS:
@@ -237,6 +237,16 @@ class LoggingVisitor(NodeVisitor):
         if version_info < (3,):
             return name.id
         return name
+
+    def get_id_attr(self, value):
+        """Check if value has id attribute and return it.
+
+        :param value: The value to get id from.
+        :return: The value.id.
+        """
+        if not hasattr(value, "id") and hasattr(value, "value"):
+            value = value.value
+        return value.id
 
     def is_bare_exception(self, node):
         """
