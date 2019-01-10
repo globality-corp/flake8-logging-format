@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "flake8-logging-format"
-version = "0.5.0"
+version = "0.6.0"
 
 setup(
     name=project,
@@ -18,7 +18,7 @@ setup(
     install_requires=[
     ],
     setup_requires=[
-        "nose>=1.3.6",
+        "nose>=1.3.7",
     ],
     dependency_links=[
     ],
@@ -31,7 +31,10 @@ setup(
         ],
     },
     tests_require=[
-        "coverage>=3.7.1",
-        "PyHamcrest>=1.8.5",
+        "coverage>=3.5.2",
+        "PyHamcrest>=1.9.0",
+    ],
+    classifiers=[
+        "Framework :: Flake8",
     ],
 )

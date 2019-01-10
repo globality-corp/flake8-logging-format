@@ -1,0 +1,13 @@
+*
+!logging_format
+logging_format/test*
+!dist/*-none-any.whl
+!entrypoint.sh
+!MANIFEST.in
+!README.md
+!requirements.txt
+!setup.py
+!setup.cfg
+**/*.pyc
+**/*~
+
