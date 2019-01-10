@@ -6,7 +6,7 @@ from logging_format.visitor import LoggingVisitor
 from logging_format.whitelist import Whitelist
 
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 
 class LoggingFormatValidator(object):
