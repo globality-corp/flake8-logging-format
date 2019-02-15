@@ -65,9 +65,9 @@ On the one hand, developers and front-line support should be able to look at app
 
 The implementation approaches this in two ways:
 
-    1. By trying to prevent the use of string concatenation in logs (vs explicit variable passing in the standard logging `extra` dictionary)
+1. By trying to prevent the use of string concatenation in logs (vs explicit variable passing in the standard logging `extra` dictionary)
 
-    2. By providing an (optional) mechanism for whitelisting which field names may appear in the `extra` dictionary
+2. By providing an (optional) mechanism for whitelisting which field names may appear in the `extra` dictionary
 
 Naturally, this _does not_ prevent developers from doing something like:
 ```
