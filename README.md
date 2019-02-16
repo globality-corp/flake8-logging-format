@@ -25,7 +25,6 @@ Instead of:
         "Hello {world}".format(world=Earth)
     )
 
-
 ## Extra Whitelist
 
 As a further level of rigor, we can enforce that `extra` dictionaries only use keys from a well-known whitelist.
@@ -52,9 +51,28 @@ In some cases you may want to log sensitive data only in debugging senarios.  Th
  -  `G100` Logging statements should not use `extra` arguments unless whitelisted
  -  `G200` Logging statements should not include the exception in logged string (use `exception` or `exc_info=True`)
  -  `G201` Logging statements should not use `error(..., exc_info=True)` (use `exception(...)` instead)
- -  `G202` Logging statements should not use redundant `exc_info=True` in `exception` 
+ -  `G202` Logging statements should not use redundant `exc_info=True` in `exception`
 
 These violations are disabled by default. To enable them for your project, specify the code(s) in your `setup.cfg`:
 
     [flake8]
     enable-extensions=G
+
+## Motivation
+
+Our motivation has to do with balancing the needs of our team and those of our customers.
+On the one hand, developers and front-line support should be able to look at application logs. On the other hand, our customers don't want their data shared with anyone, including internal employees.
+
+The implementation approaches this in two ways:
+
+1. By trying to prevent the use of string concatenation in logs (vs explicit variable passing in the standard logging `extra` dictionary)
+
+2. By providing an (optional) mechanism for whitelisting which field names may appear in the `extra` dictionary
+
+Naturally, this _does not_ prevent developers from doing something like:
+```
+extra=dict(
+    user_id=user.name,
+)
+```
+but then avoiding a case like this falls back to other processes around pull-requests, code review and internal policy.
