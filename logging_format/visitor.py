@@ -21,6 +21,7 @@ from logging_format.violations import (
     FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
+    EXTRA_ATTR_CLASH_VIOLATION,
     EXCEPTION_VIOLATION,
     ERROR_EXC_INFO_VIOLATION,
     REDUNDANT_EXC_INFO_VIOLATION,
@@ -39,6 +40,14 @@ LOGGING_LEVELS = {
     "warn",
     "warning",
 }
+
+
+# default LogRecord attributes that shouldn't be overwritten by extra dict
+RESERVED_ATTRS = {
+    "args", "asctime", "created", "exc_info", "exc_text", "filename",
+    "funcName", "levelname", "levelno", "lineno", "module",
+    "msecs", "message", "msg", "name", "pathname", "process",
+    "processName", "relativeCreated", "stack_info", "thread", "threadName"}
 
 
 class LoggingVisitor(NodeVisitor):
@@ -135,6 +144,11 @@ class LoggingVisitor(NodeVisitor):
                     continue
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
+        if self.should_check_extra_field_clash(node):
+            for key in node.keys:
+                if key.s in RESERVED_ATTRS:
+                    self.violations.append((self.current_logging_call, EXTRA_ATTR_CLASH_VIOLATION.format(key.s)))
+
         if self.should_check_extra_exception(node):
             for value in node.values:
                 self.check_exception_arg(value)
@@ -161,6 +175,10 @@ class LoggingVisitor(NodeVisitor):
         if self.should_check_whitelist(node):
             if node.arg not in self.whitelist and not node.arg.startswith("debug_"):
                 self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(node.arg)))
+
+        if self.should_check_extra_field_clash(node):
+            if node.arg in RESERVED_ATTRS:
+                self.violations.append((self.current_logging_call, EXTRA_ATTR_CLASH_VIOLATION.format(node.arg)))
 
         if self.should_check_extra_exception(node):
             self.check_exception_arg(node.value)
@@ -213,6 +231,14 @@ class LoggingVisitor(NodeVisitor):
                 self.within_logging_statement(),
                 self.within_extra_keyword(node),
                 self.whitelist is not None,
+            )
+        )
+
+    def should_check_extra_field_clash(self, node):
+        return all(
+            (
+                self.within_logging_statement(),
+                self.within_extra_keyword(node),
             )
         )
 

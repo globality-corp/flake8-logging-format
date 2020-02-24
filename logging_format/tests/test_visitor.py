@@ -3,6 +3,7 @@ Visitor tests.
 
 """
 from ast import parse
+import logging
 from sys import version_info
 from textwrap import dedent
 
@@ -13,6 +14,7 @@ from hamcrest import (
     equal_to,
     has_length,
     is_,
+    has_item
 )
 
 from logging_format.violations import (
@@ -22,11 +24,12 @@ from logging_format.violations import (
     FSTRING_VIOLATION,
     WARN_VIOLATION,
     WHITELIST_VIOLATION,
+    EXTRA_ATTR_CLASH_VIOLATION,
     EXCEPTION_VIOLATION,
     ERROR_EXC_INFO_VIOLATION,
     REDUNDANT_EXC_INFO_VIOLATION,
 )
-from logging_format.visitor import LoggingVisitor
+from logging_format.visitor import LoggingVisitor, RESERVED_ATTRS
 from logging_format.whitelist import Whitelist
 
 
@@ -133,6 +136,65 @@ def test_extra_with_not_whitelisted_keyword():
     assert_that(whitelist, contains("world"))
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(WHITELIST_VIOLATION.format("hello"))))
+
+
+def test_reserved_attrs():
+    """
+    RESERVED_ATTRS should include all attributes of an empty LogRecord
+
+    """
+
+    dummy_record = logging.LogRecord("foo", logging.DEBUG, "foo", 42, "foo", {}, None)
+    for key in dummy_record.__dict__.keys():
+        assert_that(RESERVED_ATTRS, has_item(key))
+
+
+def test_extra_with_default_keyword_dict_call():
+    """
+    Extra dict overwriting default LogRecord fields is not OK (direct "dict" call)
+
+    """
+    reserved_field = "name"
+
+    tree = parse(dedent("""\
+        import logging
+
+        logging.info(
+            "Hello world!",
+            extra=dict(
+              {reserved_field}="foobar",
+            ),
+        )
+    """.format(reserved_field=reserved_field)))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXTRA_ATTR_CLASH_VIOLATION.format(reserved_field))))
+
+
+def test_extra_with_default_keyword_dict_literal():
+    """
+    Extra dict overwriting default LogRecord fields is not OK (dict literal)
+
+    """
+    reserved_field = "name"
+
+    tree = parse(dedent("""\
+        import logging
+
+        logging.info(
+            "Hello world!",
+            extra={{
+              "{reserved_field}": "foobar",
+            }},
+        )
+    """.format(reserved_field=reserved_field)))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(1))
+    assert_that(visitor.violations[0][1], is_(equal_to(EXTRA_ATTR_CLASH_VIOLATION.format(reserved_field))))
 
 
 def test_debug_ok_with_not_whitelisted_keyword():
