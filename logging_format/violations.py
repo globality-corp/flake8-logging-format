@@ -14,6 +14,7 @@ FSTRING_VIOLATION = "G004 Logging statement uses f-string"
 WARN_VIOLATION = "G010 Logging statement uses 'warn' instead of 'warning'"
 
 WHITELIST_VIOLATION = "G100 Logging statement uses non-whitelisted extra keyword argument: {}"
+EXTRA_ATTR_CLASH_VIOLATION = "G101 Logging statement uses an extra field that clashes with a LogRecord field: {}"
 
 EXCEPTION_VIOLATION = "G200 Logging statement uses exception in arguments"
 
