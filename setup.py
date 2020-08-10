@@ -7,7 +7,6 @@ version = "0.6.0"
 setup(
     name=project,
     version=version,
-    description="Flake8 extension to validate (lack of) logging format strings",
     author="Globality Engineering",
     author_email="engineering@globality.com",
     url="https://github.com/globality-corp/flake8-logging-format",
