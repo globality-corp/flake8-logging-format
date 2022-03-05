@@ -22,8 +22,8 @@
 if [ "$1" = "test" ]; then
     # Install standard test dependencies; YMMV
     pip --quiet install \
-        .[test] nose mock PyHamcrest coverage
-    exec nosetests ${NAME}
+        .[test] pytest mock PyHamcrest coverage
+    exec pytest ${NAME}
 elif [ "$1" = "lint" ]; then
     # Install standard linting dependencies; YMMV
     pip --quiet install \
