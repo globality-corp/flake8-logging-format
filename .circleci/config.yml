@@ -153,11 +153,15 @@ workflows:
   build-and-release:
     jobs:
       - checkout:
+          context:
+          - Globality-Common
           filters:
             # run for all branches and tags
             tags:
               only: /.*/
       - build_base_docker:
+          context:
+            - Globality-Common
           requires:
             - checkout
           filters:
@@ -165,6 +169,8 @@ workflows:
             tags:
               only: /.*/
       - lint:
+          context:
+            - Globality-Common
           requires:
             - build_base_docker
           filters:
@@ -172,6 +178,8 @@ workflows:
             tags:
               only: /.*/
       - test:
+          context:
+            - Globality-Common
           requires:
             - build_base_docker
           filters:
@@ -179,6 +187,8 @@ workflows:
             tags:
               only: /.*/
       - typehinting:
+          context:
+            - Globality-Common
           requires:
             - build_base_docker
           filters:
@@ -186,6 +196,8 @@ workflows:
             tags:
               only: /.*/
       - deploy_pypi:
+          context:
+            - Globality-Commons
           requires:
             - test
             - lint
@@ -195,4 +207,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /^[0-9]+(\.[0-9]+)*/
-
