@@ -22,6 +22,7 @@ defaults: &defaults
         EXTRA_INDEX_URL: "InjectedDuringRuntime"
         AWS_ECR_DOMAIN: "InjectedDuringRuntime"
         JFROG_AUTH: "InjectedDuringRuntime"
+        PYPI_AUTH_TOKEN: "InjectedDuringRuntime"
         PYPI_USERNAME: "InjectedDuringRuntime"
         PYPI_PASSWORD: "InjectedDuringRuntime"
 
@@ -36,6 +37,7 @@ deploy_defaults: &deploy_defaults
         EXTRA_INDEX_URL: "InjectedDuringRuntime"
         AWS_ECR_DOMAIN: "InjectedDuringRuntime"
         JFROG_AUTH: "InjectedDuringRuntime"
+        PYPI_AUTH_TOKEN: "InjectedDuringRuntime"
         PYPI_USERNAME: "InjectedDuringRuntime"
         PYPI_PASSWORD: "InjectedDuringRuntime"
 
@@ -127,25 +129,27 @@ jobs:
             docker pull ${AWS_ECR_DOMAIN}/python-library:${CIRCLE_SHA1}
             docker run -it --volumes-from service_tests ${AWS_ECR_DOMAIN}/python-library:${CIRCLE_SHA1} typehinting
 
-  deploy_pypi:
+  publish_library:
     <<: *defaults
     steps:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: Deploy
+          name: Publish
           command: |
             echo "[distutils]" > ~/.pypirc
             echo "index-servers =" >> ~/.pypirc
             echo "    pypi " >> ~/.pypirc
             echo >> ~/.pypirc
             echo "[pypi]" >> ~/.pypirc
-            echo "repository:https://upload.pypi.org/legacy/" >> ~/.pypirc
-            echo "username:$PYPI_USERNAME" >> ~/.pypirc
-            echo "password:$PYPI_PASSWORD" >> ~/.pypirc
+            echo "repository = https://upload.pypi.org/legacy/" >> ~/.pypirc
+            echo "username = __token__" >> ~/.pypirc
+            echo "password = ${PYPI_AUTH_TOKEN}" >> ~/.pypirc
             echo >> ~/.pypirc
+            version=$(cat .bumpversion.cfg | awk '/current_version / {print $3}')
             python setup.py register -r pypi
-            python setup.py sdist upload -r pypi
+            python setup.py sdist
+            twine upload --repository pypi dist/flake8-logging-format-${version}.tar.gz
 
 workflows:
   version: 2
@@ -195,7 +199,7 @@ workflows:
             # run for all branches and tags
             tags:
               only: /.*/
-      - deploy_pypi:
+      - publish_library:
           context:
             - Globality-Common
             - Python-Context
