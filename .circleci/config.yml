@@ -197,7 +197,8 @@ workflows:
               only: /.*/
       - deploy_pypi:
           context:
-            - Globality-Commons
+            - Globality-Common
+            - Python-Context
           requires:
             - test
             - lint
