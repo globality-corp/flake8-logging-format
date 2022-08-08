@@ -1,8 +1,11 @@
 {
   "params": {
     "lib_name": "logging_format",
-    "name": "flake8-logging-format"
+    "name": "flake8-logging-format",
+    "pypi": {
+      "repository": "pypi"
+    }
   },
   "type": "python-library",
-  "version": "2.0.36"
+  "version": "2022.31.0"
 }
