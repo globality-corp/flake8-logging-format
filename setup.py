@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "flake8-logging-format"
-version = "0.6.1"
+version = "0.7.3"
 
 setup(
     name=project,
