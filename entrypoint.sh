@@ -26,7 +26,7 @@
 if [ "$1" = "test" ]; then
    # Install standard test dependencies; YMMV
    pip --quiet install \
-       .[test] pytest pytest-cov PyHamcrest
+       .[test]
    pytest
 elif [ "$1" = "lint" ]; then
    # Install standard linting dependencies; YMMV
@@ -35,7 +35,7 @@ elif [ "$1" = "lint" ]; then
    exec flake8 ${NAME}
 elif [ "$1" = "typehinting" ]; then
    # Install standard type-linting dependencies
-   pip --quiet install mypy
+   pip --quiet install mypy types-setuptools
    exec mypy ${NAME} --ignore-missing-imports
 else
    echo "Cannot execute $@"

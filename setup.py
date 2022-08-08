@@ -16,8 +16,15 @@ setup(
     keywords="microcosm",
     install_requires=[
     ],
-    setup_requires=[
-    ],
+    extras_require={
+        "test": [
+            "pytest",
+            "pytest-cov",
+        ],
+        "lint": [
+            "flake8",
+        ]
+    },
     dependency_links=[
     ],
     entry_points={
@@ -28,8 +35,6 @@ setup(
             "example = logging_format.whitelist:example_whitelist",
         ],
     },
-    tests_require=[
-    ],
     classifiers=[
         "Framework :: Flake8",
     ],
