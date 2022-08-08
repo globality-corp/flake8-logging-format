@@ -7,7 +7,8 @@
     "name": "flake8-logging-format",
     "pypi": {
       "repository": "pypi"
-    }
+    },
+    "test_command": "pytest"
   },
   "type": "python-library",
   "version": "2022.31.0"
