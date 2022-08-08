@@ -1,11 +1,15 @@
 #!/bin/bash -e
 
+#  This file is auto generated with globality-build.
+#  You should not make any changes to this file manually
+#
+#  See: http://github.com/globality-corp/globality-build
+
 # Container entrypoint to simplify running the production and dev servers.
 
 # Entrypoint conventions are as follows:
 #
 #  -  If the container is run without a custom CMD, the service should run as it would in production.
-#
 #  -  If the container is run with the "dev" CMD, the service should run in development mode.
 #
 #     Normally, this means that if the user's source has been mounted as a volume, the server will
@@ -20,21 +24,20 @@
 
 
 if [ "$1" = "test" ]; then
-    # Install standard test dependencies; YMMV
-    pip --quiet install \
-        .[test] nose mock PyHamcrest coverage
-    exec nosetests ${NAME}
+   # Install standard test dependencies; YMMV
+   pip --quiet install \
+       .[test]
+   nosetests
 elif [ "$1" = "lint" ]; then
-    # Install standard linting dependencies; YMMV
-    pip --quiet install \
-        .[lint] flake8 flake8-print flake8-logging-format
-    exec flake8 ${NAME}
+   # Install standard linting dependencies; YMMV
+   pip --quiet install \
+       .[lint]
+   exec flake8 ${NAME}
 elif [ "$1" = "typehinting" ]; then
-    pip install types-setuptools
-    # Install standard type-linting dependencies
-    pip --quiet install mypy
-    exec mypy ${NAME} --ignore-missing-imports
+   # Install standard type-linting dependencies
+   pip --quiet install mypy
+   exec mypy ${NAME} --ignore-missing-imports
 else
-    echo "Cannot execute $@"
-    exit 3
+   echo "Cannot execute $@"
+   exit 3
 fi
