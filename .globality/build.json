@@ -1,5 +1,8 @@
 {
   "params": {
+    "docker": {
+      "docker_tag": "python:slim-stretch"
+    },
     "lib_name": "logging_format",
     "name": "flake8-logging-format",
     "pypi": {

@@ -12,7 +12,7 @@
 #
 
 # ----------- deps -----------
-FROM python:3.7-alpine as deps
+FROM python:slim-stretch as deps
 
 #
 # Most services will use the same set of packages here, though a few will install
