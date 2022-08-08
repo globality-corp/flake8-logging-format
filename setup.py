@@ -20,6 +20,7 @@ setup(
         "test": [
             "pytest",
             "pytest-cov",
+            "PyHamcrest",
         ],
         "lint": [
             "flake8",
