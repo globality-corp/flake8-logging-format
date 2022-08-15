@@ -146,7 +146,8 @@ class LoggingVisitor(NodeVisitor):
 
         if self.should_check_extra_field_clash(node):
             for key in node.keys:
-                if key.s in RESERVED_ATTRS:
+                # key can be None if the dict uses double star syntax
+                if key is not None and key.s in RESERVED_ATTRS:
                     self.violations.append((self.current_logging_call, EXTRA_ATTR_CLASH_VIOLATION.format(key.s)))
 
         if self.should_check_extra_exception(node):
