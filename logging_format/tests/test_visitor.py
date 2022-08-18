@@ -138,6 +138,29 @@ def test_extra_with_not_whitelisted_keyword():
     assert_that(visitor.violations[0][1], is_(equal_to(WHITELIST_VIOLATION.format("hello"))))
 
 
+def test_extra_with_dict_unpacking():
+    """
+    Validates dict unpacking in extra
+
+    """
+    tree = parse(dedent("""\
+        import logging
+
+        baz = {"world", "World!"}
+        logging.info(
+            "Hello {world}!",
+            extra={
+                "some-key": "some-value",
+                **baz,
+            },
+        )
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
 def test_reserved_attrs():
     """
     RESERVED_ATTRS should include all attributes of an empty LogRecord
@@ -252,7 +275,7 @@ def test_debug_prefix_ok_with_not_whitelisted_keyword():
 
 def test_extra_with_non_whitelisted_dict_keyword():
     """
-    Extra keyword is not ok if not in whiteslist and passed in `{}`
+    Extra keyword is not ok if not in whitelist and passed in `{}`
 
     """
     tree = parse(dedent("""\
