@@ -385,6 +385,19 @@ def test_string_concat():
     assert_that(visitor.violations[1][1], is_(equal_to(STRING_CONCAT_VIOLATION)))
 
 
+def test_string_concat_bug():
+    tree = parse(dedent("""\
+        import logging
+
+        i = 0
+        logging.info("This is the {i+1}th iteration")
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, has_length(0))
+
+
 def test_warn():
     """
     Warn is deprecated in place of warning.
