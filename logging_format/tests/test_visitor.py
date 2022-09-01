@@ -389,8 +389,7 @@ def test_string_concat_bug():
     tree = parse(dedent("""\
         import logging
 
-        i = 0
-        logging.info("This is the {i+1}th iteration")
+        logging.info(f"Simulating Frequency {2 + 1}")
     """))
     visitor = LoggingVisitor()
     visitor.visit(tree)
