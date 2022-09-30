@@ -11,6 +11,7 @@ setup(
     author="Globality Engineering",
     author_email="engineering@globality.com",
     url="https://github.com/globality-corp/flake8-logging-format",
+    license="Apache License 2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
