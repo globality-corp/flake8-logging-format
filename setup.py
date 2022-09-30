@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "flake8-logging-format"
-version = "0.8.0"
+version = "0.8.1"
 long_description = open("README.md").read()
 
 setup(
