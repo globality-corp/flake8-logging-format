@@ -680,3 +680,20 @@ def test_app_log():
 
     assert_that(visitor.violations, has_length(1))
     assert_that(visitor.violations[0][1], is_(equal_to(FSTRING_VIOLATION)))
+
+
+def test_argparse_parser_error():
+    """
+    argparse.ArgumentParser.error method should not be detected.
+    """
+    tree = parse(dedent("""\
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("target_dir", type=Path)
+        args = parser.parse_args()
+        parser.error(f"Target directory {args.target_dir} does not exist")
+    """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
