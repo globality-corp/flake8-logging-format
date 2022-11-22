@@ -206,7 +206,7 @@ class LoggingVisitor(NodeVisitor):
 
         """
         try:
-            if self.get_id_attr(node.func.value) == "warnings":
+            if self.get_id_attr(node.func.value) in ["parser", "warnings"]:
                 return None
             # NB: We could also look at the argument signature or the target attribute
             if node.func.attr in LOGGING_LEVELS:
