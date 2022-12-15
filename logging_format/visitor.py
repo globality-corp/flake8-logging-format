@@ -12,6 +12,7 @@ from ast import (
     Mod,
     Name,
     NodeVisitor,
+    Str
 )
 
 from logging_format.violations import (
@@ -140,15 +141,17 @@ class LoggingVisitor(NodeVisitor):
         """
         if self.should_check_whitelist(node):
             for key in node.keys:
-                if key.s in self.whitelist or key.s.startswith("debug_"):
-                    continue
-                self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
+                if isinstance(key, Str):
+                    if key.s in self.whitelist or key.s.startswith("debug_"):
+                        continue
+                    self.violations.append((self.current_logging_call, WHITELIST_VIOLATION.format(key.s)))
 
         if self.should_check_extra_field_clash(node):
             for key in node.keys:
-                # key can be None if the dict uses double star syntax
-                if key is not None and key.s in RESERVED_ATTRS:
-                    self.violations.append((self.current_logging_call, EXTRA_ATTR_CLASH_VIOLATION.format(key.s)))
+                if isinstance(key, Str):
+                    # key can be None if the dict uses double star syntax
+                    if key is not None and key.s in RESERVED_ATTRS:
+                        self.violations.append((self.current_logging_call, EXTRA_ATTR_CLASH_VIOLATION.format(key.s)))
 
         if self.should_check_extra_exception(node):
             for value in node.values:
