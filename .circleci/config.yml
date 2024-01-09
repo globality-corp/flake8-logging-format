@@ -27,7 +27,7 @@ executors:
   globality-build-executor:
     working_directory: ~/repo
     docker:
-      - image: ${AWS_ECR_DOMAIN}/globality-build:2022.31.0
+      - image: ${AWS_ECR_DOMAIN}/globality-build:2023.18.0
         aws_auth:
           aws_access_key_id: ${AWS_ACCESS_KEY_ID}
           aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
@@ -39,7 +39,7 @@ executors:
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: ${AWS_ECR_DOMAIN}/globality-build:2022.31.0
+    - image: ${AWS_ECR_DOMAIN}/globality-build:2023.18.0
       aws_auth:
         aws_access_key_id: ${AWS_ACCESS_KEY_ID}
         aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
@@ -54,7 +54,7 @@ defaults: &defaults
 deploy_defaults: &deploy_defaults
   working_directory: ~/repo
   docker:
-    - image: ${AWS_ECR_DOMAIN}/globality-build:2022.31.0
+    - image: ${AWS_ECR_DOMAIN}/globality-build:2023.18.0
       aws_auth:
         aws_access_key_id: ${AWS_ACCESS_KEY_ID}
         aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
@@ -143,6 +143,15 @@ jobs:
           command: |
             docker run -it  --volumes-from service_tests ${AWS_ECR_DOMAIN}/python-library:${CIRCLE_SHA1} test
 
+      - run:
+          name: Copy Test Report
+          when: always
+          command: |
+            mkdir -p test-results/pytest
+            docker cp service_tests:/src/flake8_logging_format/tests/test-results/pytest/junit.xml $(pwd)/test-results/pytest/junit.xml
+
+      - store_test_results:
+          path: test-results
 
 
 

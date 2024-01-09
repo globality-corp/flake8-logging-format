@@ -11,5 +11,5 @@
     "test_command": "pytest"
   },
   "type": "python-library",
-  "version": "2022.31.0"
+  "version": "2023.18.0"
 }
