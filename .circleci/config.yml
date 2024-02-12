@@ -252,6 +252,35 @@ jobs:
             python setup.py sdist
             twine upload --repository pypi dist/flake8-logging-format-${version}.tar.gz
 
+  release-python-library-codeartifact:
+    docker:
+      - image: cimg/python:3.7.9
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Bump Version
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]
+            then
+              sed -i -e "s#0.1.0#0.${CIRCLE_BUILD_NUM}.0#" setup.py
+            else
+              sed -i -e "s#0.1.0#0.${CIRCLE_BUILD_NUM}.dev${CIRCLE_BUILD_NUM}#" setup.py
+            fi
+      - run:
+          name: Authenticate Codeartifact
+          command: |
+            export AWS_ACCESS_KEY_ID=$DRONE_AWS_ACCESS_KEY
+            export AWS_SECRET_ACCESS_KEY=$DRONE_AWS_ACCESS_SECRET_KEY
+            pip install -U pip==23.2.1
+            pip install --quiet awscli twine==4.0.2 packaging==23.1 bumpversion
+            aws codeartifact login --tool pip --repository globality-pypi-local --domain globality --domain-owner $AWS_ACCOUNT_ID --region us-east-1
+            python setup.py sdist bdist_wheel
+            aws codeartifact login --tool twine --domain globality --repository globality-pypi-local --region us-east-1
+            twine upload --non-interactive --repository codeartifact dist/* --verbose
+      - run:
+          name: Publish to Codeartifact
+          command: echo "pushed to codeartifact"
 
 
 workflows:
@@ -295,6 +324,13 @@ workflows:
       - deploy_jfrog_rc:
           context: 
           - Globality-Common
+          requires:
+            - test
+            - lint
+            - typehinting
+      - release-python-library-codeartifact:
+          context:
+            - Globality-Common
           requires:
             - test
             - lint
