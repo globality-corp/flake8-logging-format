@@ -10,7 +10,7 @@
 #  See: http://github.com/globality-corp/globality-build
 #
 #
-version: 2.1
+version: 2
 
 
 executors:
@@ -284,16 +284,16 @@ jobs:
 
 
 workflows:
-
+  version: 2
   build-and-release:
     jobs:
-      - checkout:
-          context: 
-          - Globality-Common
-          filters:
-            # run for all branches and tags
-            tags:
-              only: /.*/
+      # - checkout:
+      #     context: 
+      #     - Globality-Common
+      #     filters:
+      #       # run for all branches and tags
+      #       tags:
+      #         only: /.*/
       - build_docker:
           context: 
           - Globality-Common
