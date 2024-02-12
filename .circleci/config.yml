@@ -72,16 +72,16 @@ whitelist: &whitelist
     .
 
 jobs:
-  checkout:
-    <<: *defaults
+  # checkout:
+  #   <<: *defaults
 
-    steps:
-      - checkout
+  #   steps:
+  #     - checkout
 
 
-      - persist_to_workspace:
-          root: ~/repo
-          <<: *whitelist
+  #     - persist_to_workspace:
+  #         root: ~/repo
+  #         <<: *whitelist
 
   build_docker:
     <<: *defaults
