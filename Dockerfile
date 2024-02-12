@@ -12,7 +12,7 @@
 #
 
 # ----------- deps -----------
-FROM python:slim-stretch as deps
+FROM python:slim as deps
 
 #
 # Most services will use the same set of packages here, though a few will install
