@@ -297,8 +297,8 @@ workflows:
       - build_docker:
           context: 
           - Globality-Common
-          requires:
-            - checkout
+          # requires:
+          #   - checkout
           filters:
             # run for all branches and tags
             tags:
