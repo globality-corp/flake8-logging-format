@@ -46,7 +46,7 @@ LOGGING_LEVELS = {
 RESERVED_ATTRS = {
     "args", "asctime", "created", "exc_info", "exc_text", "filename",
     "funcName", "levelname", "levelno", "lineno", "module",
-    "msecs", "message", "msg", "name", "pathname", "process",
+    "msecs", "message", "msg", "name", "pathname", "process", "taskName",
     "processName", "relativeCreated", "stack_info", "thread", "threadName"}
 
 
