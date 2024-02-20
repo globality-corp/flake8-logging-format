@@ -91,7 +91,7 @@ jobs:
           at: ~/repo
 
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.23
           docker_layer_caching: true
 
       - run:
@@ -122,7 +122,7 @@ jobs:
           at: ~/repo
 
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.23
           docker_layer_caching: true
 
       - run:
@@ -154,7 +154,7 @@ jobs:
           at: ~/repo
 
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.23
           docker_layer_caching: true
 
       - run:
@@ -184,7 +184,7 @@ jobs:
           at: ~/repo
 
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.23
           docker_layer_caching: true
 
       - run:
@@ -251,6 +251,29 @@ jobs:
             python setup.py register -r pypi
             python setup.py sdist
             twine upload --repository pypi dist/flake8-logging-format-${version}.tar.gz
+
+  release-python-library-codeartifact:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Authenticate and Publish to Codeartifact
+          command: |
+            export AWS_ACCESS_KEY_ID=$DRONE_AWS_ACCESS_KEY
+            export AWS_SECRET_ACCESS_KEY=$DRONE_AWS_ACCESS_SECRET_KEY
+            pip install -U pip==23.2.1
+            pip install --quiet awscli twine==4.0.2 packaging==23.1
+            aws codeartifact login --tool pip --repository globality-pypi-local --domain globality --domain-owner $AWS_ACCOUNT_ID --region us-east-1
+            CURRENT_VERSION=$(cat .bumpversion.cfg | awk '/current_version / {print $3}')
+            sed -i -e "s#${CURRENT_VERSION}#0.${CIRCLE_BUILD_NUM}.dev${CIRCLE_BUILD_NUM}#" setup.py
+            version=0.${CIRCLE_BUILD_NUM}.dev${CIRCLE_BUILD_NUM}
+            python setup.py sdist bdist_wheel
+            aws codeartifact login --tool twine --domain globality --repository globality-pypi-local --region us-east-1
+            twine upload --non-interactive --repository codeartifact dist/flake8-logging-format-${version}.tar.gz --verbose
+      - run:
+          name: Echo Success
+          command: echo "Pushed to codeartifact successfully"
 
 
 
@@ -321,5 +344,11 @@ workflows:
               ignore: /.*/
             tags:
               only: /^[0-9]+(\.[0-9]+)*/
-
-
+      - release-python-library-codeartifact:
+          context:
+          - Globality-Common
+          - Python-Context
+          requires:
+            - test
+            - lint
+            - typehinting
