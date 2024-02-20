@@ -12,7 +12,7 @@
 #
 
 # ----------- deps -----------
-FROM python:slim as deps
+FROM python:3.11-slim as deps
 
 #
 # Most services will use the same set of packages here, though a few will install
