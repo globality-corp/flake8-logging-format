@@ -55,7 +55,7 @@ In some cases you may want to log sensitive data only in debugging scenarios.  T
  -  `G004` Logging statements should not use `f"..."` for their first argument (only in Python 3.6+)
  -  `G010` Logging statements should not use `warn` (use `warning` instead)
  -  `G100` Logging statements should not use `extra` arguments unless whitelisted
- -  `G101` Logging statement should not use `extra` arguments that clash with LogRecord fields
+ -  `G101` Logging statements should not use `extra` arguments that clash with LogRecord fields
  -  `G200` Logging statements should not include the exception in logged string (use `exception` or `exc_info=True`)
  -  `G201` Logging statements should not use `error(..., exc_info=True)` (use `exception(...)` instead)
  -  `G202` Logging statements should not use redundant `exc_info=True` in `exception`
