@@ -161,6 +161,26 @@ def test_extra_with_dict_unpacking():
     assert_that(visitor.violations, is_(empty()))
 
 
+def test_extra_with_argument_inside_dict_statement():
+    """
+    Validates dict unpacking in extra
+
+    """
+    tree = parse(dedent("""\
+            import logging
+
+            baz = 'Ave'
+            logging.info(
+                "Hello {world}!",
+                extra={baz: "I'm"},
+            )
+        """))
+    visitor = LoggingVisitor()
+    visitor.visit(tree)
+
+    assert_that(visitor.violations, is_(empty()))
+
+
 def test_reserved_attrs():
     """
     RESERVED_ATTRS should include all attributes of an empty LogRecord
